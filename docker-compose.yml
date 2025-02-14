@@ -1,0 +1,11 @@
+version: '3'
+services:
+  leaf:
+    build: .
+    image: nickfan/leaf-server:${IMAGE_TAG:-latest}
+    ports:
+      - "${SERVER_PORT:-6348}:${SERVER_PORT:-6348}"
+    volumes:
+      # 挂载配置文件和日志目录
+      - ./conf:/app/conf
+      - ./logs:/app/logs
