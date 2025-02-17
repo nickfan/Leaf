@@ -24,10 +24,15 @@ update_or_add_property() {
     # 移除可能存在的注释版本
     sed -i "s|^#${key}=.*||" "$file"
     
-    # 检查属性是否存在
-    if grep -q "^${key}=" "$file"; then
+    # 处理值中的引号
+    if [[ ! "$value" =~ ^\".*\"$ && ! "$value" =~ ^(true|false)$ && ("$value" =~ [[:space:]] || "$value" =~ [\&\|\$\;\"\'\`\:\/]) ]]; then
+        value="\"$value\""
+    fi
+    
+    # 检查属性是否存在（忽略注释行）
+    if grep -q "^[^#]*${key}=" "$file"; then
         # 如果存在，更新值
-        sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+        sed -i "s|^[^#]*${key}=.*|${key}=${value}|" "$file"
     else
         # 如果不存在，添加新的配置行
         echo "${key}=${value}" >> "$file"
