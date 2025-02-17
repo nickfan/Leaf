@@ -7,7 +7,7 @@ RUN mkdir -p /app/conf
 
 # 复制构建产物和配置文件
 COPY leaf-server/target/leaf.jar /app/
-COPY leaf-server/src/main/resources/leaf.properties /app/conf/leaf.properties
+COPY leaf-server/src/main/resources/leaf.properties /app/conf/leaf.example.properties
 COPY docker/entrypoint.sh /app/
 
 # 设置执行权限

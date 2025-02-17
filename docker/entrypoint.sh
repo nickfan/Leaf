@@ -35,10 +35,10 @@ update_or_add_property() {
 }
 
 ## 如果没有配置文件，从示例配置创建
-#if [ ! -f "/app/conf/leaf.properties" ]; then
-#    echo "No leaf.properties found, copying from example..."
-#    cp /app/conf/leaf.example.properties /app/conf/leaf.properties
-#fi
+if [ ! -f "/app/conf/leaf.properties" ]; then
+    echo "No leaf.properties found, copying from example..."
+    cp /app/conf/leaf.example.properties /app/conf/leaf.properties
+fi
 
 # 使用环境变量更新配置文件
 if [ -n "$LEAF_NAME" ]; then
