@@ -31,7 +31,7 @@ update_or_add_property() {
         value=$(echo "$value" | sed 's/^"//;s/"$//')  # 移除首尾的引号
         echo "${key}=${value}" >> "$file"
         return
-    }
+    fi
     
     # 其他属性的常规处理
     if [[ ! "$value" =~ ^\".*\"$ ]]; then
