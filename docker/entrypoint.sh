@@ -26,15 +26,17 @@ update_or_add_property() {
     # 移除可能存在的注释版本和空行
     sed -i -e "s|^#${key}=.*||" -e '/^[[:space:]]*$/d' "$file"
     
-    # 处理值中的特殊字符
-    # 1. 如果值已经被引号包围，保持原样
-    # 2. 如果是布尔值，保持原样
-    # 3. 如果包含特殊字符或空格，添加引号并转义特殊字符
+    # JDBC URL 特殊处理：确保不添加额外的引号
+    if [[ "$key" == "leaf.jdbc.url" ]]; then
+        value=$(echo "$value" | sed 's/^"//;s/"$//')  # 移除首尾的引号
+        echo "${key}=${value}" >> "$file"
+        return
+    }
+    
+    # 其他属性的常规处理
     if [[ ! "$value" =~ ^\".*\"$ ]]; then
         if [[ ! "$value" =~ ^(true|false)$ ]]; then
-            # 转义值中的特殊字符
             value=$(echo "$value" | sed 's/[\/&]/\\&/g')
-            # 如果包含特殊字符或空格，添加引号
             if [[ "$value" =~ [[:space:]] || "$value" =~ [\&\|\$\;\"\'\`\:\/\\] ]]; then
                 value="\"$value\""
             fi
