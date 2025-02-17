@@ -12,7 +12,9 @@ fi
 # 如果.env文件存在，则载入环境变量
 if [ -f ".env" ]; then
     echo "Loading environment variables from .env file..."
-    export $(cat .env | grep -v '^#' | xargs)
+    set -a
+    source .env
+    set +a
 fi
 
 # 默认配置
