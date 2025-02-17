@@ -27,24 +27,41 @@ update_or_add_property() {
     local value=$2
     local file=$3
     
-    # 移除可能存在的注释版本
-    sed -i "s|^#${key}=.*||" "$file"
-    
-    # 检查属性是否存在
-    if grep -q "^${key}=" "$file"; then
+    echo "Updating property: ${key}"
+    echo "With value: ${value}"
+
+    # 移除可能存在的注释版本和空行
+    sed -i -e "s|^#${key}=.*||" -e '/^[[:space:]]*$/d' "$file"
+
+    echo "After removing comments:"
+    grep -n "${key}" "$file" || echo "No ${key} entries found after comment removal"
+
+    # 处理值中的引号
+    if [[ ! "$value" =~ ^\".*\"$ && ! "$value" =~ ^(true|false)$ && ("$value" =~ [[:space:]] || "$value" =~ [\&\|\$\;\"\'\`\:\/]) ]]; then
+        value="\"$value\""
+    fi
+    echo "Final value to be set: ${value}"
+
+    # 检查属性是否存在（忽略注释行）
+    if grep -q "^[[:space:]]*${key}=" "$file"; then
         # 如果存在，更新值
-        sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+        echo "Property exists, updating..."
+        sed -i "s|^[[:space:]]*${key}=.*|${key}=${value}|" "$file"
     else
         # 如果不存在，添加新的配置行
-        echo "${key}=${value}" >> "$file"
+        echo "Property doesn't exist, adding..."
+        echo -e "\n${key}=${value}" >> "$file"
     fi
+
+    echo "Current state of ${key}:"
+    grep -n "${key}" "$file" || echo "No ${key} entries found in final state"
 }
 
-# 备份原始配置文件
-if [ -f "${LEAF_PROPERTIES}" ]; then
-    echo "Backing up original leaf.properties..."
-    cp "${LEAF_PROPERTIES}" "${LEAF_PROPERTIES}.bak"
-fi
+## 备份原始配置文件
+#if [ -f "${LEAF_PROPERTIES}" ]; then
+#    echo "Backing up original leaf.properties..."
+#    cp "${LEAF_PROPERTIES}" "${LEAF_PROPERTIES}.bak"
+#fi
 
 echo "Updating leaf.properties with environment variables..."
 
@@ -84,10 +101,10 @@ fi
 echo "Building project..."
 mvn clean package -DskipTests
 
-# 构建完成后恢复原始配置文件
-if [ -f "${LEAF_PROPERTIES}.bak" ]; then
-    echo "Restoring original leaf.properties..."
-    mv "${LEAF_PROPERTIES}.bak" "${LEAF_PROPERTIES}"
-fi
+## 构建完成后恢复原始配置文件
+#if [ -f "${LEAF_PROPERTIES}.bak" ]; then
+#    echo "Restoring original leaf.properties..."
+#    mv "${LEAF_PROPERTIES}.bak" "${LEAF_PROPERTIES}"
+#fi
 
 echo "Build completed successfully!" 
