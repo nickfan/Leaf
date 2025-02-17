@@ -24,8 +24,9 @@ update_or_add_property() {
     echo "Updating property: ${key}"
     echo "With value: ${value}"
     
-    # 移除可能存在的注释版本
-    sed -i "s|^#${key}=.*|# REMOVED COMMENT|" "$file"
+    # 移除可能存在的注释版本和空行
+    sed -i -e "s|^#${key}=.*||" -e '/^[[:space:]]*$/d' "$file"
+    
     echo "After removing comments:"
     grep -n "${key}" "$file" || echo "No ${key} entries found after comment removal"
     
@@ -36,14 +37,14 @@ update_or_add_property() {
     echo "Final value to be set: ${value}"
     
     # 检查属性是否存在（忽略注释行）
-    if grep -q "^[^#]*${key}=" "$file"; then
+    if grep -q "^[[:space:]]*${key}=" "$file"; then
         # 如果存在，更新值
         echo "Property exists, updating..."
-        sed -i "s|^[^#]*${key}=.*|${key}=${value}|" "$file"
+        sed -i "s|^[[:space:]]*${key}=.*|${key}=${value}|" "$file"
     else
         # 如果不存在，添加新的配置行
         echo "Property doesn't exist, adding..."
-        echo "${key}=${value}" >> "$file"
+        echo -e "\n${key}=${value}" >> "$file"
     fi
     
     echo "Current state of ${key}:"
