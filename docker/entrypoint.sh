@@ -23,8 +23,11 @@ update_or_add_property() {
     
     echo "Updating property: ${key}"
     
-    # 移除可能存在的注释版本和空行
-    sed -i -e "s|^#${key}=.*||" -e '/^[[:space:]]*$/d' "$file"
+    # 移除可能存在的注释版本
+    sed -i "s|^#${key}=.*||" "$file"
+    
+    # 移除空行
+    sed -i '/^[[:space:]]*$/d' "$file"
     
     # JDBC URL 和 ZooKeeper 地址特殊处理：确保不添加额外的引号
     if [[ "$key" == "leaf.jdbc.url" ]] || [[ "$key" == "leaf.snowflake.zk.address" ]]; then
@@ -43,11 +46,15 @@ update_or_add_property() {
     
     echo "Final value to be set: ${value}"
     
-    # 使用精确的模式匹配来更新或添加属性
+    # 检查属性是否已存在
     if grep -q "^[[:space:]]*${key}=" "$file"; then
-        # 使用 | 作为分隔符来避免 URL 中的 / 符号造成问题
-        sed -i "s|^[[:space:]]*${key}=.*|${key}=${value}|" "$file"
+        # 使用 awk 进行更精确的替换
+        awk -v k="$key" -v v="$value" '
+        $0 ~ "^[[:space:]]*"k"=" { print k"="v; next }
+        { print }
+        ' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
     else
+        # 如果属性不存在，则添加到文件末尾
         echo "${key}=${value}" >> "$file"
     fi
 }
