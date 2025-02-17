@@ -26,8 +26,8 @@ update_or_add_property() {
     # 移除可能存在的注释版本和空行
     sed -i -e "s|^#${key}=.*||" -e '/^[[:space:]]*$/d' "$file"
     
-    # JDBC URL 特殊处理：确保不添加额外的引号
-    if [[ "$key" == "leaf.jdbc.url" ]]; then
+    # JDBC URL 和 ZooKeeper 地址特殊处理：确保不添加额外的引号
+    if [[ "$key" == "leaf.jdbc.url" ]] || [[ "$key" == "leaf.snowflake.zk.address" ]]; then
         value=$(echo "$value" | sed 's/^"//;s/"$//')  # 移除首尾的引号
         echo "${key}=${value}" >> "$file"
         return
