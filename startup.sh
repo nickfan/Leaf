@@ -39,33 +39,34 @@ update_or_add_property() {
     local file=$3
     
     echo "Updating property: ${key}"
-    echo "With value: ${value}"
 
     # 移除可能存在的注释版本和空行
     sed -i -e "s|^#${key}=.*||" -e '/^[[:space:]]*$/d' "$file"
 
-    echo "After removing comments:"
-    grep -n "${key}" "$file" || echo "No ${key} entries found after comment removal"
-
-    # 处理值中的引号
-    if [[ ! "$value" =~ ^\".*\"$ && ! "$value" =~ ^(true|false)$ && ("$value" =~ [[:space:]] || "$value" =~ [\&\|\$\;\"\'\`\:\/]) ]]; then
-        value="\"$value\""
+    # 处理值中的特殊字符
+    # 1. 如果值已经被引号包围，保持原样
+    # 2. 如果是布尔值，保持原样
+    # 3. 如果包含特殊字符或空格，添加引号并转义特殊字符
+    if [[ ! "$value" =~ ^\".*\"$ ]]; then
+        if [[ ! "$value" =~ ^(true|false)$ ]]; then
+            # 转义值中的特殊字符
+            value=$(echo "$value" | sed 's/[\/&]/\\&/g')
+            # 如果包含特殊字符或空格，添加引号
+            if [[ "$value" =~ [[:space:]] || "$value" =~ [\&\|\$\;\"\'\`\:\/\\] ]]; then
+                value="\"$value\""
+            fi
+        fi
     fi
+    
     echo "Final value to be set: ${value}"
 
-    # 检查属性是否存在（忽略注释行）
+    # 使用精确的模式匹配来更新或添加属性
     if grep -q "^[[:space:]]*${key}=" "$file"; then
-        # 如果存在，更新值
-        echo "Property exists, updating..."
+        # 使用 | 作为分隔符来避免 URL 中的 / 符号造成问题
         sed -i "s|^[[:space:]]*${key}=.*|${key}=${value}|" "$file"
     else
-        # 如果不存在，添加新的配置行
-        echo "Property doesn't exist, adding..."
-        echo -e "\n${key}=${value}" >> "$file"
+        echo "${key}=${value}" >> "$file"
     fi
-
-    echo "Current state of ${key}:"
-    grep -n "${key}" "$file" || echo "No ${key} entries found in final state"
 }
 
 # 创建必要的目录
