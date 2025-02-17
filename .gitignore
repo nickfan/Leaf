@@ -12,3 +12,8 @@
 target/
 logs/
 log/
+
+conf/
+.env
+.env.*
+!.env.example

@@ -5,3 +5,8 @@
 target/
 !leaf-server/target/leaf.jar
 logs/
+
+conf/
+.env
+.env.*
+!.env.example
