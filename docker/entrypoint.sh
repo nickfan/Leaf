@@ -29,16 +29,14 @@ update_or_add_property() {
     # JDBC URL 和 ZooKeeper 地址特殊处理：确保不添加额外的引号
     if [[ "$key" == "leaf.jdbc.url" ]] || [[ "$key" == "leaf.snowflake.zk.address" ]]; then
         value=$(echo "$value" | sed 's/^"//;s/"$//')  # 移除首尾的引号
-        echo "${key}=${value}" >> "$file"
-        return
-    fi
-    
-    # 其他属性的常规处理
-    if [[ ! "$value" =~ ^\".*\"$ ]]; then
-        if [[ ! "$value" =~ ^(true|false)$ ]]; then
-            value=$(echo "$value" | sed 's/[\/&]/\\&/g')
-            if [[ "$value" =~ [[:space:]] || "$value" =~ [\&\|\$\;\"\'\`\:\/\\] ]]; then
-                value="\"$value\""
+    else
+        # 其他属性的常规处理
+        if [[ ! "$value" =~ ^\".*\"$ ]]; then
+            if [[ ! "$value" =~ ^(true|false)$ ]]; then
+                value=$(echo "$value" | sed 's/[\/&]/\\&/g')
+                if [[ "$value" =~ [[:space:]] || "$value" =~ [\&\|\$\;\"\'\`\:\/\\] ]]; then
+                    value="\"$value\""
+                fi
             fi
         fi
     fi

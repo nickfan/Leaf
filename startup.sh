@@ -39,29 +39,27 @@ update_or_add_property() {
     local file=$3
     
     echo "Updating property: ${key}"
-
+    
     # 移除可能存在的注释版本和空行
     sed -i -e "s|^#${key}=.*||" -e '/^[[:space:]]*$/d' "$file"
-
+    
     # JDBC URL 和 ZooKeeper 地址特殊处理：确保不添加额外的引号
     if [[ "$key" == "leaf.jdbc.url" ]] || [[ "$key" == "leaf.snowflake.zk.address" ]]; then
         value=$(echo "$value" | sed 's/^"//;s/"$//')  # 移除首尾的引号
-        echo "${key}=${value}" >> "$file"
-        return
-    fi
-
-    # 其他属性的常规处理
-    if [[ ! "$value" =~ ^\".*\"$ ]]; then
-        if [[ ! "$value" =~ ^(true|false)$ ]]; then
-            value=$(echo "$value" | sed 's/[\/&]/\\&/g')
-            if [[ "$value" =~ [[:space:]] || "$value" =~ [\&\|\$\;\"\'\`\:\/\\] ]]; then
-                value="\"$value\""
+    else
+        # 其他属性的常规处理
+        if [[ ! "$value" =~ ^\".*\"$ ]]; then
+            if [[ ! "$value" =~ ^(true|false)$ ]]; then
+                value=$(echo "$value" | sed 's/[\/&]/\\&/g')
+                if [[ "$value" =~ [[:space:]] || "$value" =~ [\&\|\$\;\"\'\`\:\/\\] ]]; then
+                    value="\"$value\""
+                fi
             fi
         fi
     fi
     
     echo "Final value to be set: ${value}"
-
+    
     # 使用精确的模式匹配来更新或添加属性
     if grep -q "^[[:space:]]*${key}=" "$file"; then
         # 使用 | 作为分隔符来避免 URL 中的 / 符号造成问题
