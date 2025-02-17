@@ -59,6 +59,7 @@ if [ -n "$LEAF_SNOWFLAKE_ENABLE" ]; then
 fi
 
 if [ -n "$LEAF_JDBC_URL" ]; then
+    echo "Updating leaf.jdbc.url..." + ${LEAF_JDBC_URL}
     update_or_add_property "leaf.jdbc.url" "${LEAF_JDBC_URL}" "/app/conf/leaf.properties"
 fi
 
@@ -77,6 +78,10 @@ fi
 if [ -n "$LEAF_SNOWFLAKE_PORT" ]; then
     update_or_add_property "leaf.snowflake.port" "${LEAF_SNOWFLAKE_PORT}" "/app/conf/leaf.properties"
 fi
+
+# 输出配置文件
+echo "Using leaf.properties:"
+cat /app/conf/leaf.properties
 
 # 启动应用
 exec ${JAVA_CMD} ${JAVA_OPTS} ${JAVA_GC_OPTS} \
