@@ -77,5 +77,5 @@ fi
 exec ${JAVA_CMD} ${JAVA_OPTS} ${JAVA_GC_OPTS} \
     -jar /app/leaf.jar \
     --server.port=${SERVER_PORT} \
-    --spring.config.additional-location=${CONFIG_DIR} \
+    --spring.config.location=classpath:/application.properties,classpath:/leaf.properties,file:/app/${CONFIG_DIR} \
     "$@"
