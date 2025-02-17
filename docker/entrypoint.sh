@@ -15,36 +15,62 @@ CONFIG_DIR=${CONFIG_DIR:-"conf/"}
 # 创建日志目录
 mkdir -p /app/logs
 
+# 配置文件处理函数
+update_or_add_property() {
+    local key=$1
+    local value=$2
+    local file=$3
+    
+    # 移除可能存在的注释版本
+    sed -i "s|^#${key}=.*||" "$file"
+    
+    # 检查属性是否存在
+    if grep -q "^${key}=" "$file"; then
+        # 如果存在，更新值
+        sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+    else
+        # 如果不存在，添加新的配置行
+        echo "${key}=${value}" >> "$file"
+    fi
+}
+
 # 如果没有配置文件，从示例配置创建
 if [ ! -f "/app/conf/leaf.properties" ]; then
     echo "No leaf.properties found, copying from example..."
     cp /app/conf/leaf.example.properties /app/conf/leaf.properties
-    
-    # 使用环境变量更新配置文件
-    if [ -n "$LEAF_NAME" ]; then
-        sed -i "s/^leaf\.name=.*/leaf.name=${LEAF_NAME}/" /app/conf/leaf.properties
-    fi
-    if [ -n "$LEAF_SEGMENT_ENABLE" ]; then
-        sed -i "s/^leaf\.segment\.enable=.*/leaf.segment.enable=${LEAF_SEGMENT_ENABLE}/" /app/conf/leaf.properties
-    fi
-    if [ -n "$LEAF_SNOWFLAKE_ENABLE" ]; then
-        sed -i "s/^leaf\.snowflake\.enable=.*/leaf.snowflake.enable=${LEAF_SNOWFLAKE_ENABLE}/" /app/conf/leaf.properties
-    fi
-    if [ -n "$LEAF_JDBC_URL" ]; then
-        sed -i "s|^leaf\.jdbc\.url=.*|leaf.jdbc.url=${LEAF_JDBC_URL}|" /app/conf/leaf.properties
-    fi
-    if [ -n "$LEAF_JDBC_USERNAME" ]; then
-        sed -i "s/^leaf\.jdbc\.username=.*/leaf.jdbc.username=${LEAF_JDBC_USERNAME}/" /app/conf/leaf.properties
-    fi
-    if [ -n "$LEAF_JDBC_PASSWORD" ]; then
-        sed -i "s/^leaf\.jdbc\.password=.*/leaf.jdbc.password=${LEAF_JDBC_PASSWORD}/" /app/conf/leaf.properties
-    fi
-    if [ -n "$LEAF_SNOWFLAKE_ZK_ADDRESS" ]; then
-        sed -i "s/^leaf\.snowflake\.zk\.address=.*/leaf.snowflake.zk.address=${LEAF_SNOWFLAKE_ZK_ADDRESS}/" /app/conf/leaf.properties
-    fi
-    if [ -n "$LEAF_SNOWFLAKE_PORT" ]; then
-        sed -i "s/^leaf\.snowflake\.port=.*/leaf.snowflake.port=${LEAF_SNOWFLAKE_PORT}/" /app/conf/leaf.properties
-    fi
+fi
+
+# 使用环境变量更新配置文件
+if [ -n "$LEAF_NAME" ]; then
+    update_or_add_property "leaf.name" "${LEAF_NAME}" "/app/conf/leaf.properties"
+fi
+
+if [ -n "$LEAF_SEGMENT_ENABLE" ]; then
+    update_or_add_property "leaf.segment.enable" "${LEAF_SEGMENT_ENABLE}" "/app/conf/leaf.properties"
+fi
+
+if [ -n "$LEAF_SNOWFLAKE_ENABLE" ]; then
+    update_or_add_property "leaf.snowflake.enable" "${LEAF_SNOWFLAKE_ENABLE}" "/app/conf/leaf.properties"
+fi
+
+if [ -n "$LEAF_JDBC_URL" ]; then
+    update_or_add_property "leaf.jdbc.url" "${LEAF_JDBC_URL}" "/app/conf/leaf.properties"
+fi
+
+if [ -n "$LEAF_JDBC_USERNAME" ]; then
+    update_or_add_property "leaf.jdbc.username" "${LEAF_JDBC_USERNAME}" "/app/conf/leaf.properties"
+fi
+
+if [ -n "$LEAF_JDBC_PASSWORD" ]; then
+    update_or_add_property "leaf.jdbc.password" "${LEAF_JDBC_PASSWORD}" "/app/conf/leaf.properties"
+fi
+
+if [ -n "$LEAF_SNOWFLAKE_ZK_ADDRESS" ]; then
+    update_or_add_property "leaf.snowflake.zk.address" "${LEAF_SNOWFLAKE_ZK_ADDRESS}" "/app/conf/leaf.properties"
+fi
+
+if [ -n "$LEAF_SNOWFLAKE_PORT" ]; then
+    update_or_add_property "leaf.snowflake.port" "${LEAF_SNOWFLAKE_PORT}" "/app/conf/leaf.properties"
 fi
 
 # 启动应用
