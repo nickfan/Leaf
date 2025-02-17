@@ -75,7 +75,9 @@ fi
 
 # 启动应用
 exec ${JAVA_CMD} ${JAVA_OPTS} ${JAVA_GC_OPTS} \
+    -Dlogging.level.com.sankuai.leaf=INFO \
+    -Dleaf.print.config=true \
     -jar /app/leaf.jar \
     --server.port=${SERVER_PORT} \
-    --spring.config.location=classpath:/application.properties,classpath:/leaf.properties,file:/app/${CONFIG_DIR} \
+    --spring.config.location=classpath:/application.properties,classpath:/leaf.properties,file:/app/${CONFIG_DIR}leaf.properties \
     "$@"
