@@ -21,22 +21,33 @@ update_or_add_property() {
     local value=$2
     local file=$3
     
+    echo "Updating property: ${key}"
+    echo "With value: ${value}"
+    
     # 移除可能存在的注释版本
-    sed -i "s|^#${key}=.*||" "$file"
+    sed -i "s|^#${key}=.*|# REMOVED COMMENT|" "$file"
+    echo "After removing comments:"
+    grep -n "${key}" "$file" || echo "No ${key} entries found after comment removal"
     
     # 处理值中的引号
     if [[ ! "$value" =~ ^\".*\"$ && ! "$value" =~ ^(true|false)$ && ("$value" =~ [[:space:]] || "$value" =~ [\&\|\$\;\"\'\`\:\/]) ]]; then
         value="\"$value\""
     fi
+    echo "Final value to be set: ${value}"
     
     # 检查属性是否存在（忽略注释行）
     if grep -q "^[^#]*${key}=" "$file"; then
         # 如果存在，更新值
+        echo "Property exists, updating..."
         sed -i "s|^[^#]*${key}=.*|${key}=${value}|" "$file"
     else
         # 如果不存在，添加新的配置行
+        echo "Property doesn't exist, adding..."
         echo "${key}=${value}" >> "$file"
     fi
+    
+    echo "Current state of ${key}:"
+    grep -n "${key}" "$file" || echo "No ${key} entries found in final state"
 }
 
 ## 如果没有配置文件，从示例配置创建
@@ -59,8 +70,12 @@ if [ -n "$LEAF_SNOWFLAKE_ENABLE" ]; then
 fi
 
 if [ -n "$LEAF_JDBC_URL" ]; then
-    echo "Updating leaf.jdbc.url..." + ${LEAF_JDBC_URL}
+    echo "Updating leaf.jdbc.url with value: ${LEAF_JDBC_URL}"
+    echo "Before update:"
+    grep -n "leaf.jdbc.url" "/app/conf/leaf.properties" || echo "No existing leaf.jdbc.url entry found"
     update_or_add_property "leaf.jdbc.url" "${LEAF_JDBC_URL}" "/app/conf/leaf.properties"
+    echo "After update:"
+    grep -n "leaf.jdbc.url" "/app/conf/leaf.properties" || echo "Still no leaf.jdbc.url entry found"
 fi
 
 if [ -n "$LEAF_JDBC_USERNAME" ]; then
@@ -81,7 +96,10 @@ fi
 
 # 输出配置文件
 echo "Using leaf.properties:"
-cat /app/conf/leaf.properties
+echo "File contents with line numbers:"
+cat -n /app/conf/leaf.properties
+echo "Grep for jdbc url:"
+grep -n "leaf.jdbc.url" "/app/conf/leaf.properties" || echo "No leaf.jdbc.url entry found in final check"
 
 # 启动应用
 exec ${JAVA_CMD} ${JAVA_OPTS} ${JAVA_GC_OPTS} \
